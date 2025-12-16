@@ -1,48 +1,40 @@
 const express = require("express");
 const router = express.Router();
-const pool = require("./db");
+
+// Переключение базы: true = MongoDB, false = PostgreSQL
+const USE_MONGO = false;
+
+const repository = USE_MONGO
+  ? require("./repositories/mongoRepository")
+  : require("./repositories/postgresRepository");
 
 // GET all
 router.get("/items", async (req, res) => {
-  const result = await pool.query("SELECT * FROM discussion_posts");
-  res.json(result.rows);
+  const data = await repository.getAll();
+  res.json(data);
 });
 
 // GET by id
 router.get("/items/:id", async (req, res) => {
-  const result = await pool.query(
-    "SELECT * FROM discussion_posts WHERE id = $1",
-    [req.params.id]
-  );
-  res.json(result.rows[0]);
+  const data = await repository.getById(req.params.id);
+  res.json(data);
 });
 
 // POST
 router.post("/items", async (req, res) => {
-  const { title, content, author } = req.body;
-  await pool.query(
-    "INSERT INTO discussion_posts (title, content, author) VALUES ($1, $2, $3)",
-    [title, content, author]
-  );
+  await repository.create(req.body);
   res.sendStatus(201);
 });
 
 // PUT
 router.put("/items/:id", async (req, res) => {
-  const { title, content, author } = req.body;
-  await pool.query(
-    "UPDATE discussion_posts SET title=$1, content=$2, author=$3 WHERE id=$4",
-    [title, content, author, req.params.id]
-  );
+  await repository.update(req.params.id, req.body);
   res.sendStatus(200);
 });
 
 // DELETE
 router.delete("/items/:id", async (req, res) => {
-  await pool.query(
-    "DELETE FROM discussion_posts WHERE id=$1",
-    [req.params.id]
-  );
+  await repository.delete(req.params.id);
   res.sendStatus(200);
 });
 

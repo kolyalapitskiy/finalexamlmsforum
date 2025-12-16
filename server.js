@@ -6,7 +6,7 @@ const routes = require("./routes");
 const app = express();
 
 app.use(cors());
-app.use(bodyParser.json()); // ← ВАЖНО: ДО routes
+app.use(bodyParser.json());
 app.use(express.static("public"));
 app.use(routes);
 
